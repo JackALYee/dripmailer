@@ -87,11 +87,11 @@ st.markdown("""
 # --- INITIALIZE SESSION STATE ---
 if 'env_email' not in st.session_state: st.session_state['env_email'] = ""
 if 'env_pass' not in st.session_state: st.session_state['env_pass'] = ""
-if 'sig_name' not in st.session_state: st.session_state['sig_name'] = "Jane Doe"
+if 'sig_name' not in st.session_state: st.session_state['sig_name'] = "Jack Yi"
 if 'sig_title' not in st.session_state: st.session_state['sig_title'] = "Sales Director"
 if 'sig_phone' not in st.session_state: st.session_state['sig_phone'] = "(555) 123-4567"
 if 'sig_website' not in st.session_state: st.session_state['sig_website'] = "https://www.streamax.com"
-if 'sig_avatar' not in st.session_state: st.session_state['sig_avatar'] = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
+if 'sig_avatar' not in st.session_state: st.session_state['sig_avatar'] = "https://images.unsplash.com/photo-1531831108325-7fe9616bc780?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
 if 'sig_logo' not in st.session_state: st.session_state['sig_logo'] = "https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001"
 if 'sig_layout' not in st.session_state: st.session_state['sig_layout'] = "Creative with Avatar"
 
