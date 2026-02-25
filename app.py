@@ -10,55 +10,71 @@ from email.utils import make_msgid
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Drip Mailer", page_icon="📧", layout="wide")
 
-# --- CUSTOM CSS (Aurora Tech Flow) ---
+# --- CUSTOM CSS (Corporate Streamax Theme) ---
 st.markdown("""
 <style>
+    /* Main Background & Text */
     .stApp {
-        background-color: #050810;
-        background-image: radial-gradient(circle at 50% -20%, #0B1221, #050810);
-        color: #A0AEC0;
+        background-color: #F8FAFC;
+        color: #334155;
     }
-    h1, h2, h3 { color: #FFFFFF !important; }
+    h1, h2, h3, h4, h5, h6 { color: #0F172A !important; }
+    
+    /* Buttons */
     .stButton>button {
-        background: linear-gradient(135deg, #2AF598, #009EFD);
-        color: #050810;
+        background-color: #00A859;
+        color: #FFFFFF;
         font-weight: 600;
         border: none;
-        box-shadow: 0 0 15px rgba(0, 158, 253, 0.3);
-        transition: all 0.3s ease;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
     }
     .stButton>button:hover {
-        box-shadow: 0 0 25px rgba(42, 245, 152, 0.6);
-        border: none;
-        color: #050810;
+        background-color: #008C4A;
+        color: #FFFFFF;
+        box-shadow: 0 4px 6px -1px rgba(0, 168, 89, 0.2);
     }
+    
+    /* Input Fields */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: rgba(255, 255, 255, 0.05);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: #FFFFFF;
+        color: #0F172A;
+        border: 1px solid #CBD5E1;
+        border-radius: 6px;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #2AF598;
-        box-shadow: 0 0 0 1px #2AF598;
+        border-color: #00A859;
+        box-shadow: 0 0 0 1px #00A859;
     }
-    .aurora-text {
-        background: linear-gradient(to right, #2AF598, #009EFD);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+    
+    /* Brand Text Highlight */
+    .brand-text {
+        color: #00A859;
         font-weight: bold;
     }
+    
     /* Hide default header */
     header { visibility: hidden; }
+    
+    /* Tab Styling Override for Light Theme */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 24px;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #00A859 !important;
+        border-bottom-color: #00A859 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# --- HEADER (Replaces Sidebar) ---
+# --- HEADER ---
 st.markdown("""
-<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
-    <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 60px; filter: brightness(0) invert(1);" />
+<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #E2E8F0;">
+    <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 55px;" />
     <div>
-        <h1 class="aurora-text" style="margin: 0; padding: 0; font-size: 36px; line-height: 1.1;">Drip Mailer</h1>
-        <p style="margin: 0; padding: 0; color: #009EFD; font-weight: 600; font-size: 16px;">By Trucking BU</p>
+        <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #0F172A;">Drip Mailer</h1>
+        <p style="margin: 0; padding: 0; color: #00A859; font-weight: 600; font-size: 15px;">By Trucking BU</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -119,8 +135,8 @@ def get_signature_html(sig_id, data):
             '<div style="font-family: Arial, sans-serif; margin-top: 25px;">'
             f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #0f172a;">{data["name"]}</p>'
             f'<p style="margin: 2px 0 5px 0; font-size: 12px; color: #475569;">{data["title"]}</p>'
-            f'<p style="margin: 0; font-size: 12px; color: #2563eb;"><strong>{data["company"]}</strong></p>'
-            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #2563eb; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #00A859;"><strong>{data["company"]}</strong></p>'
+            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #00A859; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
             f'<img src="{data["logoUrl"]}" alt="Company Logo" style="height: 45px; border-radius: 4px;" />'
             '</div>'
         )
@@ -161,7 +177,7 @@ tab0, tab1, tab2, tab3 = st.tabs(["0. Setup", "1. Compose", "2. Signatures", "3.
 
 # --- TAB 0: SETUP ---
 with tab0:
-    st.markdown("<h2>Environment <span class='aurora-text'>Setup</span></h2>", unsafe_allow_html=True)
+    st.markdown("<h2>Environment <span class='brand-text'>Setup</span></h2>", unsafe_allow_html=True)
     st.write("To securely send emails from the cloud, enter your Streamax credentials here. They are temporarily held in memory for this session only and are never saved to a database.")
     
     with st.container():
@@ -181,8 +197,8 @@ with tab0:
 
 # --- TAB 1: COMPOSE ---
 with tab1:
-    st.markdown("<h2>Compose <span class='aurora-text'>Email</span></h2>", unsafe_allow_html=True)
-    st.write("Use variables like `{first_name}`, `{last_name}`, `{company}`, `{role}`.")
+    st.markdown("<h2>Compose <span class='brand-text'>Email</span></h2>", unsafe_allow_html=True)
+    st.write("Use variables like `{first_name}`, `{company}`, `{role}`.")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -195,9 +211,9 @@ with tab1:
         rendered_subject = render_template(subject_template, sample_row)
         rendered_body_html = render_template(body_template, sample_row).replace('\n', '<br>')
         
-        # Enhanced fully styled email preview card
+        # Enhanced fully styled email preview card (Light Theme)
         preview_html = (
-            '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">'
+            '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">'
             '<div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">'
             '<span style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Subject:</span>'
             f'<span style="color: #0f172a; font-size: 15px; font-weight: bold; margin-left: 8px;">{rendered_subject}</span>'
@@ -212,7 +228,7 @@ with tab1:
 
 # --- TAB 2: SIGNATURES ---
 with tab2:
-    st.markdown("<h2>Email <span class='aurora-text'>Signature</span></h2>", unsafe_allow_html=True)
+    st.markdown("<h2>Email <span class='brand-text'>Signature</span></h2>", unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 2])
     with col1:
@@ -226,11 +242,11 @@ with tab2:
 
     with col2:
         st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"], key="sig_layout")
-        st.markdown("<div style='background: white; padding: 20px; border-radius: 10px; color: black;'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
+        st.markdown("<div style='background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; color: black; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
 
 # --- TAB 3: DATA & SENDING ---
 with tab3:
-    st.markdown("<h2>Data & <span class='aurora-text'>Sending</span></h2>", unsafe_allow_html=True)
+    st.markdown("<h2>Data & <span class='brand-text'>Sending</span></h2>", unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader("Upload leadList.csv", type=['csv'])
     
