@@ -47,8 +47,32 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         font-weight: bold;
     }
+    /* Hide default header */
+    header { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
+
+# --- HEADER (Replaces Sidebar) ---
+st.markdown("""
+<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+    <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 60px; filter: brightness(0) invert(1);" />
+    <div>
+        <h1 class="aurora-text" style="margin: 0; padding: 0; font-size: 36px; line-height: 1.1;">Drip Mailer</h1>
+        <p style="margin: 0; padding: 0; color: #009EFD; font-weight: 600; font-size: 16px;">By Trucking BU</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# --- INITIALIZE SESSION STATE ---
+if 'env_email' not in st.session_state: st.session_state['env_email'] = ""
+if 'env_pass' not in st.session_state: st.session_state['env_pass'] = ""
+if 'sig_name' not in st.session_state: st.session_state['sig_name'] = "Jane Doe"
+if 'sig_title' not in st.session_state: st.session_state['sig_title'] = "Sales Director"
+if 'sig_phone' not in st.session_state: st.session_state['sig_phone'] = "(555) 123-4567"
+if 'sig_website' not in st.session_state: st.session_state['sig_website'] = "https://www.streamax.com"
+if 'sig_avatar' not in st.session_state: st.session_state['sig_avatar'] = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
+if 'sig_logo' not in st.session_state: st.session_state['sig_logo'] = "https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001"
+if 'sig_layout' not in st.session_state: st.session_state['sig_layout'] = "Creative with Avatar"
 
 # --- DEFAULTS & TEMPLATES ---
 DEFAULT_BODY = """Hi {first_name},
@@ -61,48 +85,46 @@ Would you be open to a brief 10-minute chat next week?
 
 Best regards,"""
 
-DISCLAIMER_HTML = """
-<div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-family: Arial, sans-serif; font-size: 10px; color: #64748b; line-height: 1.4; text-align: justify;">
-    <strong>Email Disclaimer:</strong> This e-mail is intended only for the person or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of, or taking of any action in reliance upon, the information in this e-mail by persons or entities other than the intended recipient is prohibited and may be unlawful. If you received this e-mail in error, please contact the sender and delete it from any computer.
-</div>
-"""
+# Tightly packed HTML to prevent Streamlit from rendering them as Markdown code blocks
+DISCLAIMER_HTML = (
+    '<div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-family: Arial, sans-serif; font-size: 10px; color: #64748b; line-height: 1.4; text-align: justify;">'
+    '<strong>Email Disclaimer:</strong> This e-mail is intended only for the person or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of, or taking of any action in reliance upon, the information in this e-mail by persons or entities other than the intended recipient is prohibited and may be unlawful. If you received this e-mail in error, please contact the sender and delete it from any computer.'
+    '</div>'
+)
 
 def get_signature_html(sig_id, data):
     if sig_id == "Minimalist Professional":
-        return f"""
-        <div style="font-family: Arial, sans-serif; color: #333; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-            <p style="margin: 0; font-weight: bold; font-size: 14px;">{data['name']}</p>
-            <p style="margin: 0; font-size: 12px; color: #666;">{data['title']} | {data['company']}</p>
-            <p style="margin: 0; font-size: 12px; color: #0066cc;">{data['email']} | {data['phone']}</p>
-        </div>
-        {DISCLAIMER_HTML}
-        """
+        html = (
+            '<div style="font-family: Arial, sans-serif; color: #333; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">'
+            f'<p style="margin: 0; font-weight: bold; font-size: 14px;">{data["name"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #666;">{data["title"]} | {data["company"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #0066cc;">{data["email"]} | {data["phone"]}</p>'
+            '</div>'
+        )
+        return html + DISCLAIMER_HTML
     elif sig_id == "Creative with Avatar":
-        return f"""
-        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin-top: 20px; display: flex; align-items: center; gap: 15px;">
-            <img src="{data['avatarUrl']}" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;" />
-            <div>
-                <p style="margin: 0; font-weight: 600; font-size: 15px; color: #1e293b;">{data['name']}</p>
-                <p style="margin: 2px 0; font-size: 13px; color: #64748b;">{data['title']}</p>
-                <p style="margin: 2px 0; font-size: 13px; color: #3b82f6;">{data['email']} <span style="color: #94a3b8;">|</span> <span style="color: #64748b;">{data['phone']}</span></p>
-                <a href="{data['website']}" style="margin: 0; font-size: 13px; color: #3b82f6; text-decoration: none;">{data['website'].replace('https://', '')}</a>
-            </div>
-        </div>
-        {DISCLAIMER_HTML}
-        """
+        html = (
+            '<div style="font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif; margin-top: 20px; display: flex; align-items: center; gap: 15px;">'
+            f'<img src="{data["avatarUrl"]}" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0;" />'
+            '<div>'
+            f'<p style="margin: 0; font-weight: 600; font-size: 15px; color: #1e293b;">{data["name"]}</p>'
+            f'<p style="margin: 2px 0; font-size: 13px; color: #64748b;">{data["title"]}</p>'
+            f'<p style="margin: 2px 0; font-size: 13px; color: #3b82f6;">{data["email"]} <span style="color: #94a3b8;">|</span> <span style="color: #64748b;">{data["phone"]}</span></p>'
+            f'<a href="{data["website"]}" style="margin: 0; font-size: 13px; color: #3b82f6; text-decoration: none;">{data["website"].replace("https://", "")}</a>'
+            '</div></div>'
+        )
+        return html + DISCLAIMER_HTML
     else: # Corporate with Logo
-        return f"""
-        <div style="font-family: Arial, sans-serif; margin-top: 25px;">
-            <p style="margin: 0; font-weight: bold; font-size: 14px; color: #0f172a;">{data['name']}</p>
-            <p style="margin: 2px 0 5px 0; font-size: 12px; color: #475569;">{data['title']}</p>
-            <p style="margin: 0; font-size: 12px; color: #2563eb;"><strong>{data['company']}</strong></p>
-            <p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;">
-                <a href="mailto:{data['email']}" style="color: #2563eb; text-decoration: none;">{data['email']}</a> | {data['phone']}
-            </p>
-            <img src="{data['logoUrl']}" alt="Company Logo" style="height: 45px; border-radius: 4px;" />
-        </div>
-        {DISCLAIMER_HTML}
-        """
+        html = (
+            '<div style="font-family: Arial, sans-serif; margin-top: 25px;">'
+            f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #0f172a;">{data["name"]}</p>'
+            f'<p style="margin: 2px 0 5px 0; font-size: 12px; color: #475569;">{data["title"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #2563eb;"><strong>{data["company"]}</strong></p>'
+            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #2563eb; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
+            f'<img src="{data["logoUrl"]}" alt="Company Logo" style="height: 45px; border-radius: 4px;" />'
+            '</div>'
+        )
+        return html + DISCLAIMER_HTML
 
 # --- HELPER FUNCTIONS ---
 def render_template(template_str, row):
@@ -121,17 +143,20 @@ def create_message(subject, html_body, to_addr, from_name, from_email):
     msg.attach(MIMEText(html_body, "html", "utf-8"))
     return msg
 
-# --- SIDEBAR & HEADER ---
-st.sidebar.image("https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001", width=150)
-st.sidebar.markdown("<h1 class='aurora-text'>Drip Mailer</h1>", unsafe_allow_html=True)
-st.sidebar.caption("By Trucking BU")
+# Generate current signature html to share across tabs
+sig_data = {
+    "name": st.session_state['sig_name'],
+    "title": st.session_state['sig_title'],
+    "company": "Streamax Technology",
+    "phone": st.session_state['sig_phone'],
+    "email": st.session_state['env_email'] or "your.email@streamax.com",
+    "website": st.session_state['sig_website'],
+    "avatarUrl": st.session_state['sig_avatar'],
+    "logoUrl": st.session_state['sig_logo']
+}
+selected_sig_html = get_signature_html(st.session_state['sig_layout'], sig_data)
 
-# Initialize Session State
-if 'env_email' not in st.session_state:
-    st.session_state['env_email'] = ""
-if 'env_pass' not in st.session_state:
-    st.session_state['env_pass'] = ""
-
+# --- TAB SETUP ---
 tab0, tab1, tab2, tab3 = st.tabs(["0. Setup", "1. Compose", "2. Signatures", "3. Data & Sending"])
 
 # --- TAB 0: SETUP ---
@@ -164,10 +189,26 @@ with tab1:
         subject_template = st.text_input("Subject Line", "Streamlining Operations at {company}")
         body_template = st.text_area("Email Body", DEFAULT_BODY, height=350)
     with col2:
-        st.caption("Live Preview (Sample Data)")
+        st.caption("Live HTML Preview (Sample Data)")
         sample_row = {"first_name": "John", "company": "Acme Corp", "role": "Manager"}
-        st.markdown(f"**Subject:** {render_template(subject_template, sample_row)}")
-        st.info(render_template(body_template, sample_row).replace('\n', '\n\n'))
+        
+        rendered_subject = render_template(subject_template, sample_row)
+        rendered_body_html = render_template(body_template, sample_row).replace('\n', '<br>')
+        
+        # Enhanced fully styled email preview card
+        preview_html = (
+            '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">'
+            '<div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">'
+            '<span style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Subject:</span>'
+            f'<span style="color: #0f172a; font-size: 15px; font-weight: bold; margin-left: 8px;">{rendered_subject}</span>'
+            '</div>'
+            '<div style="font-size: 14px; line-height: 1.6; color: #334155;">'
+            f'{rendered_body_html}'
+            '<br><br>'
+            f'{selected_sig_html}'
+            '</div></div>'
+        )
+        st.markdown(preview_html, unsafe_allow_html=True)
 
 # --- TAB 2: SIGNATURES ---
 with tab2:
@@ -175,23 +216,16 @@ with tab2:
     
     col1, col2 = st.columns([1, 2])
     with col1:
-        sig_name = st.text_input("Full Name", "Jane Doe")
-        sig_title = st.text_input("Job Title", "Sales Director")
-        sig_phone = st.text_input("Phone", "(555) 123-4567")
-        sig_website = st.text_input("Website", "https://www.streamax.com")
-        sig_avatar = st.text_input("Avatar URL", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80")
-        sig_logo = st.text_input("Logo URL", "https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001")
+        st.text_input("Full Name", key="sig_name")
+        st.text_input("Job Title", key="sig_title")
+        st.text_input("Phone", key="sig_phone")
+        st.text_input("Website", key="sig_website")
+        st.text_input("Avatar URL", key="sig_avatar")
+        st.text_input("Logo URL", key="sig_logo")
         st.caption(f"Email: {st.session_state['env_email'] or 'Will use Setup Email'}")
-        
-    sig_data = {
-        "name": sig_name, "title": sig_title, "company": "Streamax Technology", 
-        "phone": sig_phone, "email": st.session_state['env_email'] or "your.email@streamax.com", 
-        "website": sig_website, "avatarUrl": sig_avatar, "logoUrl": sig_logo
-    }
 
     with col2:
-        sig_layout = st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"])
-        selected_sig_html = get_signature_html(sig_layout, sig_data)
+        st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"], key="sig_layout")
         st.markdown("<div style='background: white; padding: 20px; border-radius: 10px; color: black;'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
 
 # --- TAB 3: DATA & SENDING ---
@@ -238,7 +272,7 @@ with tab3:
                                 rendered_body = render_template(body_template, row)
                                 html_content = rendered_body.replace('\n', '<br>') + f"<br><br>{selected_sig_html}"
                                 
-                                msg = create_message(rendered_subj, html_content, target_email, sig_name, st.session_state['env_email'])
+                                msg = create_message(rendered_subj, html_content, target_email, st.session_state['sig_name'], st.session_state['env_email'])
                                 
                                 # Send
                                 try:
