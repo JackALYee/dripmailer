@@ -76,9 +76,7 @@ st.markdown("""
 # --- HEADER ---
 st.markdown("""
 <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-    <div style="background-color: #FFFFFF; padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-        <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 40px;" />
-    </div>
+    <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 50px; filter: brightness(0) invert(1);" />
     <div>
         <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Drip Mailer</h1>
         <p style="margin: 0; padding: 0; color: #00A859; font-weight: 600; font-size: 15px;">By Trucking BU</p>
@@ -118,7 +116,7 @@ DISCLAIMER_HTML = (
 def get_signature_html(sig_id, data):
     if sig_id == "Minimalist Professional":
         html = (
-            '<div style="font-family: Arial, sans-serif; color: #333; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">'
+            '<div style="font-family: Arial, sans-serif; color: #000; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">'
             f'<p style="margin: 0; font-weight: bold; font-size: 14px;">{data["name"]}</p>'
             f'<p style="margin: 0; font-size: 12px; color: #666;">{data["title"]} | {data["company"]}</p>'
             f'<p style="margin: 0; font-size: 12px; color: #0066cc;">{data["email"]} | {data["phone"]}</p>'
