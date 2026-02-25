@@ -182,7 +182,7 @@ with tab0:
 # --- TAB 1: COMPOSE ---
 with tab1:
     st.markdown("<h2>Compose <span class='aurora-text'>Email</span></h2>", unsafe_allow_html=True)
-    st.write("Use variables like `{first_name}`, `{company}`, `{role}`.")
+    st.write("Use variables like `{first_name}`, `{last_name}`, `{company}`, `{role}`.")
     
     col1, col2 = st.columns(2)
     with col1:
