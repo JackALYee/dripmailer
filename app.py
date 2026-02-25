@@ -116,8 +116,8 @@ DISCLAIMER_HTML = (
 def get_signature_html(sig_id, data):
     if sig_id == "Minimalist Professional":
         html = (
-            '<div style="font-family: Arial, sans-serif; color: #000; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">'
-            f'<p style="margin: 0; font-weight: bold; font-size: 14px;">{data["name"]}</p>'
+            '<div style="font-family: Arial, sans-serif; color: #333; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">'
+            f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #000000;">{data["name"]}</p>'
             f'<p style="margin: 0; font-size: 12px; color: #666;">{data["title"]} | {data["company"]}</p>'
             f'<p style="margin: 0; font-size: 12px; color: #0066cc;">{data["email"]} | {data["phone"]}</p>'
             '</div>'
