@@ -10,15 +10,17 @@ from email.utils import make_msgid
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Drip Mailer", page_icon="📧", layout="wide")
 
-# --- CUSTOM CSS (Corporate Streamax Theme) ---
+# --- CUSTOM CSS (Dark Theme + Streamax Green) ---
 st.markdown("""
 <style>
     /* Main Background & Text */
     .stApp {
-        background-color: #F8FAFC;
-        color: #334155;
+        background-color: #050810;
+        background-image: radial-gradient(circle at 50% -20%, #111827, #050810);
+        color: #E2E8F0;
     }
-    h1, h2, h3, h4, h5, h6 { color: #0F172A !important; }
+    h1, h2, h3, h4, h5, h6 { color: #FFFFFF !important; }
+    p, span, label { color: #E2E8F0; }
     
     /* Buttons */
     .stButton>button {
@@ -33,14 +35,14 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #008C4A;
         color: #FFFFFF;
-        box-shadow: 0 4px 6px -1px rgba(0, 168, 89, 0.2);
+        box-shadow: 0 4px 10px rgba(0, 168, 89, 0.4);
     }
     
     /* Input Fields */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #FFFFFF;
-        color: #0F172A;
-        border: 1px solid #CBD5E1;
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #FFFFFF;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 6px;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
@@ -57,9 +59,12 @@ st.markdown("""
     /* Hide default header */
     header { visibility: hidden; }
     
-    /* Tab Styling Override for Light Theme */
+    /* Tab Styling Override for Dark Theme */
     .stTabs [data-baseweb="tab-list"] {
         gap: 24px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #94A3B8;
     }
     .stTabs [aria-selected="true"] {
         color: #00A859 !important;
@@ -70,10 +75,12 @@ st.markdown("""
 
 # --- HEADER ---
 st.markdown("""
-<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #E2E8F0;">
-    <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 55px;" />
+<div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+    <div style="background-color: #FFFFFF; padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+        <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 40px;" />
+    </div>
     <div>
-        <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #0F172A;">Drip Mailer</h1>
+        <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Drip Mailer</h1>
         <p style="margin: 0; padding: 0; color: #00A859; font-weight: 600; font-size: 15px;">By Trucking BU</p>
     </div>
 </div>
@@ -211,9 +218,9 @@ with tab1:
         rendered_subject = render_template(subject_template, sample_row)
         rendered_body_html = render_template(body_template, sample_row).replace('\n', '<br>')
         
-        # Enhanced fully styled email preview card (Light Theme)
+        # Enhanced fully styled email preview card (White background for realistic preview)
         preview_html = (
-            '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">'
+            '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">'
             '<div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">'
             '<span style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Subject:</span>'
             f'<span style="color: #0f172a; font-size: 15px; font-weight: bold; margin-left: 8px;">{rendered_subject}</span>'
@@ -242,7 +249,7 @@ with tab2:
 
     with col2:
         st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"], key="sig_layout")
-        st.markdown("<div style='background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; color: black; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
+        st.markdown("<div style='background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; color: black; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
 
 # --- TAB 3: DATA & SENDING ---
 with tab3:
