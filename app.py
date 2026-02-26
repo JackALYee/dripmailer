@@ -207,7 +207,13 @@ with tab0:
 # --- TAB 1: COMPOSE ---
 with tab1:
     st.markdown("<h2>Compose <span class='brand-text'>Email</span></h2>", unsafe_allow_html=True)
-    st.write("Use variables like `{first_name}`, `{company}`, `{role}`, and `{your_name}`.")
+    
+    with st.popover("💡 Where do these variables come from?"):
+        st.markdown("""
+        **Variable Reference Guide:**
+        * `{first_name}`, `{last_name}`, `{company}`, `{role}`: These are obtained directly from the **CSV file** you upload in the *Data & Sending* tab. (Any column header in your CSV can automatically be used as a variable!)
+        * `{your_name}`: This is obtained dynamically from the **Full Name** input in the *Signatures* tab.
+        """)
     
     col1, col2 = st.columns(2)
     with col1:
