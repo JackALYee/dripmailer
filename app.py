@@ -92,6 +92,7 @@ if 'env_email' not in st.session_state: st.session_state['env_email'] = ""
 if 'env_pass' not in st.session_state: st.session_state['env_pass'] = ""
 if 'sig_name' not in st.session_state: st.session_state['sig_name'] = "Jack Yi"
 if 'sig_title' not in st.session_state: st.session_state['sig_title'] = "Sales Director"
+if 'sig_company' not in st.session_state: st.session_state['sig_company'] = "Streamax Technology"
 if 'sig_phone' not in st.session_state: st.session_state['sig_phone'] = "(555) 123-4567"
 if 'sig_website' not in st.session_state: st.session_state['sig_website'] = "https://www.streamax.com"
 if 'sig_avatar' not in st.session_state: st.session_state['sig_avatar'] = "https://images.unsplash.com/photo-1531831108325-7fe9616bc780?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
@@ -121,7 +122,7 @@ def get_signature_html(sig_id, data):
         html = (
             '<div style="font-family: Arial, sans-serif; color: #333; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">'
             f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #000000;">{data["name"]}</p>'
-            f'<p style="margin: 0; font-size: 12px; color: #666;">{data["title"]} | {data["company"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #666;">{data["title"]} | <a href="{data["website"]}" style="color: #666; text-decoration: none;">{data["company"]}</a></p>'
             f'<p style="margin: 0; font-size: 12px; color: #0066cc;">{data["email"]} | {data["phone"]}</p>'
             '</div>'
         )
@@ -134,7 +135,7 @@ def get_signature_html(sig_id, data):
             f'<p style="margin: 0; font-weight: 600; font-size: 15px; color: #1e293b;">{data["name"]}</p>'
             f'<p style="margin: 2px 0; font-size: 13px; color: #64748b;">{data["title"]}</p>'
             f'<p style="margin: 2px 0; font-size: 13px; color: #3b82f6;">{data["email"]} <span style="color: #94a3b8;">|</span> <span style="color: #64748b;">{data["phone"]}</span></p>'
-            f'<a href="{data["website"]}" style="margin: 0; font-size: 13px; color: #3b82f6; text-decoration: none;">{data["website"].replace("https://", "")}</a>'
+            f'<a href="{data["website"]}" style="margin: 0; font-size: 13px; color: #3b82f6; text-decoration: none;">{data["company"]}</a>'
             '</div></div>'
         )
         return html + DISCLAIMER_HTML
@@ -143,7 +144,7 @@ def get_signature_html(sig_id, data):
             '<div style="font-family: Arial, sans-serif; margin-top: 25px;">'
             f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #0f172a;">{data["name"]}</p>'
             f'<p style="margin: 2px 0 5px 0; font-size: 12px; color: #475569;">{data["title"]}</p>'
-            f'<p style="margin: 0; font-size: 12px; color: #B2CC40;"><strong>{data["company"]}</strong></p>'
+            f'<p style="margin: 0; font-size: 12px; color: #B2CC40;"><strong><a href="{data["website"]}" style="color: #B2CC40; text-decoration: none;">{data["company"]}</a></strong></p>'
             f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #B2CC40; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
             f'<img src="{data["logoUrl"]}" alt="Company Logo" style="height: 45px; border-radius: 4px;" />'
             '</div>'
@@ -171,7 +172,7 @@ def create_message(subject, html_body, to_addr, from_name, from_email):
 sig_data = {
     "name": st.session_state['sig_name'],
     "title": st.session_state['sig_title'],
-    "company": "Streamax Technology",
+    "company": st.session_state['sig_company'],
     "phone": st.session_state['sig_phone'],
     "email": st.session_state['env_email'] or "your.email@streamax.com",
     "website": st.session_state['sig_website'],
@@ -242,6 +243,7 @@ with tab2:
     with col1:
         st.text_input("Full Name", key="sig_name")
         st.text_input("Job Title", key="sig_title")
+        st.text_input("Company Name", key="sig_company")
         st.text_input("Phone", key="sig_phone")
         st.text_input("Website", key="sig_website")
         st.text_input("Avatar URL", key="sig_avatar")
