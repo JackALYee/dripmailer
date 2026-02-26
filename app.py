@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import smtplib
+import ssl
 import time
 import re
 from email.mime.text import MIMEText
@@ -201,7 +202,8 @@ with tab0:
                 with st.spinner("Verifying credentials with mail.streamax.com..."):
                     try:
                         # Test SMTP Connection and Login before saving
-                        server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=10)
+                        context = ssl.create_default_context()
+                        server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=15, context=context)
                         server.login(input_email, input_pass)
                         server.quit()
                         
@@ -212,9 +214,103 @@ with tab0:
                     except smtplib.SMTPAuthenticationError:
                         st.error("Email or passwords incorrect.")
                     except Exception as e:
-                        st.error(f"Could not connect to the mail server: {str(e)}")
+                        # Broad catch to ensure 535 auth failures are always reported correctly
+                        if '535' in str(e) or 'authentication failed' in str(e).lower():
+                            st.error("Email or passwords incorrect.")
+                        else:
+                            st.error(f"Could not connect to the mail server: {str(e)}")
             else:
                 st.error("Please provide a valid @streamax.com email and password.")
+
+# --- TAB 1: COMPOSE ---
+with tab1:
+    st.markdown("<h2>Compose <span class='brand-text'>Email</span></h2>", unsafe_allow_html=True)
+    
+    with st.popover("💡 Where do these variables come from?"):
+        st.markdown("""
+        **Variable Reference Guide:**
+        * `{first_name}`, `{last_name}`, `{company}`, `{role}`: These are obtained directly from the **CSV file** you upload in the *Data & Sending* tab. (Any column header in your CSV can automatically be used as a variable!)
+        * `{your_name}`: This is obtained dynamically from the **Full Name** input in the *Signatures* tab.
+        """)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        subject_template = st.text_input("Subject Line", "Streamlining Operations at {company}")
+        body_template = st.text_area("Email Body", DEFAULT_BODY, height=350)
+    with col2:
+        st.caption("Live HTML Preview (Sample Data)")
+        sample_row = {
+            "first_name": "John", 
+            "company": "Acme Corp", 
+            "role": "Manager",
+            "your_name": st.session_state['sig_name']
+        }
+        
+        rendered_subject = render_template(subject_template, sample_row)
+        rendered_body_html = render_template(body_template, sample_row).replace('\n', '<br>')
+        
+        # Enhanced fully styled email preview card (White background for realistic preview)
+        preview_html = (
+            '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">'
+            '<div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">'
+            '<span style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Subject:</span>'
+            f'<span style="color: #0f172a; font-size: 15px; font-weight: bold; margin-left: 8px;">{rendered_subject}</span>'
+            '</div>'
+            '<div style="font-size: 14px; line-height: 1.6; color: #334155;">'
+            f'{rendered_body_html}'
+            '<br><br>'
+            f'{selected_sig_html}'
+            '</div></div>'
+        )
+        st.markdown(preview_html, unsafe_allow_html=True)
+
+# --- TAB 2: SIGNATURES ---
+with tab2:
+    st.markdown("<h2>Email <span class='brand-text'>Signature</span></h2>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.text_input("Full Name", key="sig_name")
+        st.text_input("Job Title", key="sig_title")
+        st.text_input("Company Name", key="sig_company")
+        st.text_input("Phone", key="sig_phone")
+        st.text_input("Website", key="sig_website")
+        st.text_input("Avatar URL", key="sig_avatar")
+        st.text_input("Logo URL", key="sig_logo")
+        st.caption(f"Email: {st.session_state['env_email'] or 'Will use Setup Email'}")
+
+    with col2:
+        st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"], key="sig_layout")
+        st.markdown("<div style='background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; color: black; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
+
+# --- TAB 3: DATA & SENDING ---
+with tab3:
+    st.markdown("<h2>Data & <span class='brand-text'>Sending</span></h2>", unsafe_allow_html=True)
+    
+    # --- Moved Lead List Template Download Section ---
+    st.markdown("<h3>📝 Lead List <span class='brand-text'>Template</span></h3>", unsafe_allow_html=True)
+    st.write("Ensure your contacts are formatted correctly before uploading below. Here is the required column structure:")
+    
+    # Display the table structure
+    template_df = pd.DataFrame([{
+        "Email": "example@streamax.com",
+        "First_Name": "John",
+        "Last_Name": "Doe",
+        "Company": "Streamax",
+        "Role": "Sales Manager"
+    }])
+    st.dataframe(template_df, hide_index=True, use_container_width=True)
+    
+    st.write("Click below to download the standard CSV template.")
+    
+    CSV_TEMPLATE = "Email,First_Name,Last_Name,Company,Role\nexample@streamax.com,John,Doe,Streamax,Sales Manager\n"
+    
+    st.download_button(
+        label="Download leadList.csv",
+        data=CSV_TEMPLATE,
+        file_name="leadList.csv",
+        mime="text/csv",
+    )
     
     st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin-bottom: 25px;'><br>", unsafe_allow_html=True)
     # ------------------------------------------------
@@ -244,8 +340,8 @@ with tab0:
                         
                         try:
                             # SMTP Connection
-                            context = smtplib.ssl.create_default_context() if True else None
-                            server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=30)
+                            context = ssl.create_default_context()
+                            server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=30, context=context)
                             server.login(st.session_state['env_email'], st.session_state['env_pass'])
                             
                             total = len(df)
@@ -280,7 +376,13 @@ with tab0:
                             server.quit()
                             st.success("Batch Processing Complete!")
                             
+                        except smtplib.SMTPAuthenticationError:
+                            st.error("Email or passwords incorrect. Please return to the Setup tab to re-authenticate.")
                         except Exception as e:
-                            st.error(f"SMTP Connection Error: {str(e)}")
+                            # Broad catch to ensure 535 auth failures are always reported correctly
+                            if '535' in str(e) or 'authentication failed' in str(e).lower():
+                                st.error("Email or passwords incorrect. Please return to the Setup tab to re-authenticate.")
+                            else:
+                                st.error(f"SMTP Connection Error: {str(e)}")
         except Exception as e:
             st.error(f"Error reading CSV: {str(e)}")
