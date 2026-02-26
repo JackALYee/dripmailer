@@ -10,7 +10,7 @@ from email.utils import make_msgid
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Drip Mailer", page_icon="📧", layout="wide")
 
-# --- CUSTOM CSS (Dark Theme + Streamax Green) ---
+# --- CUSTOM CSS (Dark Theme + CCE314 Green) ---
 st.markdown("""
 <style>
     /* Main Background & Text */
@@ -24,8 +24,8 @@ st.markdown("""
     
     /* Buttons */
     .stButton>button {
-        background-color: #00A859;
-        color: #FFFFFF;
+        background-color: #CCE314;
+        color: #050810; /* Switched to dark text for readability on bright green */
         font-weight: 600;
         border: none;
         border-radius: 6px;
@@ -33,9 +33,9 @@ st.markdown("""
         transition: all 0.2s ease;
     }
     .stButton>button:hover {
-        background-color: #008C4A;
-        color: #FFFFFF;
-        box-shadow: 0 4px 10px rgba(0, 168, 89, 0.4);
+        background-color: #B5CC12;
+        color: #050810;
+        box-shadow: 0 4px 10px rgba(204, 227, 20, 0.4);
     }
     
     /* Input Fields */
@@ -46,13 +46,13 @@ st.markdown("""
         border-radius: 6px;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #00A859;
-        box-shadow: 0 0 0 1px #00A859;
+        border-color: #CCE314;
+        box-shadow: 0 0 0 1px #CCE314;
     }
     
     /* Brand Text Highlight */
     .brand-text {
-        color: #00A859;
+        color: #CCE314;
         font-weight: bold;
     }
     
@@ -67,8 +67,8 @@ st.markdown("""
         color: #94A3B8;
     }
     .stTabs [aria-selected="true"] {
-        color: #00A859 !important;
-        border-bottom-color: #00A859 !important;
+        color: #CCE314 !important;
+        border-bottom-color: #CCE314 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -79,7 +79,7 @@ st.markdown("""
     <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 50px; filter: brightness(0) invert(1);" />
     <div>
         <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Drip Mailer</h1>
-        <p style="margin: 0; padding: 0; color: #CCE314; font-weight: 600; font-size: 15px;">By Trucking BU</p> <p style="margin: 0; padding: 0; color: #00A859; font-weight: 600; font-size: 15px;">A Sales Toolkit Extension</p>
+        <p style="margin: 0; padding: 0; color: #CCE314; font-weight: 600; font-size: 15px;">By Trucking BU - A Sales Toolkit Extension</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -140,8 +140,8 @@ def get_signature_html(sig_id, data):
             '<div style="font-family: Arial, sans-serif; margin-top: 25px;">'
             f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #0f172a;">{data["name"]}</p>'
             f'<p style="margin: 2px 0 5px 0; font-size: 12px; color: #475569;">{data["title"]}</p>'
-            f'<p style="margin: 0; font-size: 12px; color: #00A859;"><strong>{data["company"]}</strong></p>'
-            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #00A859; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #CCE314;"><strong>{data["company"]}</strong></p>'
+            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #CCE314; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
             f'<img src="{data["logoUrl"]}" alt="Company Logo" style="height: 45px; border-radius: 4px;" />'
             '</div>'
         )
