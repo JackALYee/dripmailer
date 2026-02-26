@@ -207,7 +207,7 @@ with tab0:
 # --- TAB 1: COMPOSE ---
 with tab1:
     st.markdown("<h2>Compose <span class='brand-text'>Email</span></h2>", unsafe_allow_html=True)
-    st.write("Use variables like `{first_name}`, `{company}`, `{role}`.")
+    st.write("Use variables like `{first_name}`, `{company}`, `{role}`, and `{your_name}`.")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -215,7 +215,12 @@ with tab1:
         body_template = st.text_area("Email Body", DEFAULT_BODY, height=350)
     with col2:
         st.caption("Live HTML Preview (Sample Data)")
-        sample_row = {"first_name": "John", "company": "Acme Corp", "role": "Manager"}
+        sample_row = {
+            "first_name": "John", 
+            "company": "Acme Corp", 
+            "role": "Manager",
+            "your_name": st.session_state['sig_name']
+        }
         
         rendered_subject = render_template(subject_template, sample_row)
         rendered_body_html = render_template(body_template, sample_row).replace('\n', '<br>')
@@ -317,13 +322,17 @@ with tab3:
                             
                             total = len(df)
                             for index, row in df.iterrows():
-                                target_email = row.get('email')
+                                # Convert row to dictionary and inject dynamic variables
+                                row_dict = row.to_dict()
+                                row_dict["your_name"] = st.session_state['sig_name']
+                                
+                                target_email = row_dict.get('email')
                                 if pd.isna(target_email):
                                     continue
                                 
                                 # Render Email
-                                rendered_subj = render_template(subject_template, row)
-                                rendered_body = render_template(body_template, row)
+                                rendered_subj = render_template(subject_template, row_dict)
+                                rendered_body = render_template(body_template, row_dict)
                                 html_content = rendered_body.replace('\n', '<br>') + f"<br><br>{selected_sig_html}"
                                 
                                 msg = create_message(rendered_subj, html_content, target_email, st.session_state['sig_name'], st.session_state['env_email'])
