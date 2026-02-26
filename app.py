@@ -10,7 +10,7 @@ from email.utils import make_msgid
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Drip Mailer", page_icon="📧", layout="wide")
 
-# --- CUSTOM CSS (Dark Theme + CCE314 Green) ---
+# --- CUSTOM CSS (Dark Theme + B2CC40 Green) ---
 st.markdown("""
 <style>
     /* Main Background & Text */
@@ -33,9 +33,9 @@ st.markdown("""
         transition: all 0.2s ease;
     }
     .stButton>button:hover, .stButton>button:hover p, .stButton>button:hover span {
-        background-color: #B5CC12 !important;
+        background-color: #9DB535 !important;
         color: #050810 !important;
-        box-shadow: 0 4px 10px rgba(204, 227, 20, 0.4);
+        box-shadow: 0 4px 10px rgba(178, 204, 64, 0.4);
     }
     
     /* Input Fields */
@@ -202,20 +202,6 @@ with tab0:
                 st.success("Credentials saved to active session! You can now proceed to Compose.")
             else:
                 st.error("Please provide a valid @streamax.com email and password.")
-    
-    st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin-bottom: 25px;'><br>", unsafe_allow_html=True)
-    
-    st.markdown("<h3>📝 Lead List <span class='brand-text'>Template</span></h3>", unsafe_allow_html=True)
-    st.write("Ensure your contacts are formatted correctly before uploading in the Data & Sending tab. Click below to download the standard CSV template.")
-    
-    CSV_TEMPLATE = "Email,First_Name,Last_Name,Company,Role\nexample@streamax.com,John,Doe,Streamax,Sales Manager\n"
-    
-    st.download_button(
-        label="Download leadList.csv",
-        data=CSV_TEMPLATE,
-        file_name="leadList.csv",
-        mime="text/csv",
-    )
 
 # --- TAB 1: COMPOSE ---
 with tab1:
@@ -269,6 +255,22 @@ with tab2:
 # --- TAB 3: DATA & SENDING ---
 with tab3:
     st.markdown("<h2>Data & <span class='brand-text'>Sending</span></h2>", unsafe_allow_html=True)
+    
+    # --- Moved Lead List Template Download Section ---
+    st.markdown("<h3>📝 Lead List <span class='brand-text'>Template</span></h3>", unsafe_allow_html=True)
+    st.write("Ensure your contacts are formatted correctly before uploading below. Click below to download the standard CSV template.")
+    
+    CSV_TEMPLATE = "Email,First_Name,Last_Name,Company,Role\nexample@streamax.com,John,Doe,Streamax,Sales Manager\n"
+    
+    st.download_button(
+        label="Download leadList.csv",
+        data=CSV_TEMPLATE,
+        file_name="leadList.csv",
+        mime="text/csv",
+    )
+    
+    st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin-bottom: 25px;'><br>", unsafe_allow_html=True)
+    # ------------------------------------------------
     
     uploaded_file = st.file_uploader("Upload leadList.csv", type=['csv'])
     
