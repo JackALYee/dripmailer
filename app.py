@@ -24,7 +24,7 @@ st.markdown("""
     
     /* Buttons */
     .stButton>button, .stButton>button p, .stButton>button span, .stButton>button div {
-        background-color: #B2CC40 !important;
+        background-color: #AACD06 !important;
         color: #050810 !important; /* Force dark text for readability on bright green */
         font-weight: 600 !important;
         border: none;
@@ -46,13 +46,13 @@ st.markdown("""
         border-radius: 6px;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #B2CC40;
-        box-shadow: 0 0 0 1px #B2CC40;
+        border-color: #AACD06;
+        box-shadow: 0 0 0 1px #AACD06;
     }
     
     /* Brand Text Highlight */
     .brand-text {
-        color: #B2CC40;
+        color: #AACD06;
         font-weight: bold;
     }
     
@@ -67,8 +67,8 @@ st.markdown("""
         color: #94A3B8;
     }
     .stTabs [aria-selected="true"] {
-        color: #B2CC40 !important;
-        border-bottom-color: #B2CC40 !important;
+        color: #AACD06 !important;
+        border-bottom-color: #AACD06 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -80,7 +80,7 @@ st.markdown("""
     <div>
         <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Drip Mailer</h1>
         <p style="margin: 0; padding: 0; font-size: 15px;">
-            <span style="color: #B2CC40; font-weight: 600;">By Trucking BU</span>
+            <span style="color: #AACD06; font-weight: 600;">By Trucking BU</span>
             <span style="color: #94A3B8; font-weight: 500;"> - A Sales Toolkit Extension</span>
         </p>
     </div>
@@ -144,8 +144,8 @@ def get_signature_html(sig_id, data):
             '<div style="font-family: Arial, sans-serif; margin-top: 25px;">'
             f'<p style="margin: 0; font-weight: bold; font-size: 14px; color: #0f172a;">{data["name"]}</p>'
             f'<p style="margin: 2px 0 5px 0; font-size: 12px; color: #475569;">{data["title"]}</p>'
-            f'<p style="margin: 0; font-size: 12px; color: #B2CC40;"><strong><a href="{data["website"]}" style="color: #B2CC40; text-decoration: none;">{data["company"]}</a></strong></p>'
-            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #B2CC40; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
+            f'<p style="margin: 0; font-size: 12px; color: #AACD06;"><strong><a href="{data["website"]}" style="color: #AACD06; text-decoration: none;">{data["company"]}</a></strong></p>'
+            f'<p style="margin: 4px 0 12px 0; font-size: 12px; color: #475569;"><a href="mailto:{data["email"]}" style="color: #AACD06; text-decoration: none;">{data["email"]}</a> | {data["phone"]}</p>'
             f'<img src="{data["logoUrl"]}" alt="Company Logo" style="height: 45px; border-radius: 4px;" />'
             '</div>'
         )
