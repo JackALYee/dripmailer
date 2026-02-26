@@ -23,18 +23,18 @@ st.markdown("""
     p, span, label { color: #E2E8F0; }
     
     /* Buttons */
-    .stButton>button {
-        background-color: #CCE314;
-        color: #050810; /* Switched to dark text for readability on bright green */
-        font-weight: 600;
+    .stButton>button, .stButton>button p, .stButton>button span, .stButton>button div {
+        background-color: #CCE314 !important;
+        color: #050810 !important; /* Force dark text for readability on bright green */
+        font-weight: 600 !important;
         border: none;
         border-radius: 6px;
-        padding: 0.5rem 1rem;
+        padding: 0.1rem 0.5rem;
         transition: all 0.2s ease;
     }
-    .stButton>button:hover {
-        background-color: #B5CC12;
-        color: #050810;
+    .stButton>button:hover, .stButton>button:hover p, .stButton>button:hover span {
+        background-color: #B5CC12 !important;
+        color: #050810 !important;
         box-shadow: 0 4px 10px rgba(204, 227, 20, 0.4);
     }
     
@@ -79,7 +79,10 @@ st.markdown("""
     <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 50px; filter: brightness(0) invert(1);" />
     <div>
         <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Drip Mailer</h1>
-        <p style="margin: 0; padding: 0; color: #CCE314; font-weight: 600; font-size: 15px;">By Trucking BU - A Sales Toolkit Extension</p>
+        <p style="margin: 0; padding: 0; font-size: 15px;">
+            <span style="color: #CCE314; font-weight: 600;">By Trucking BU</span>
+            <span style="color: #94A3B8; font-weight: 500;"> - A Sales Toolkit Extension</span>
+        </p>
     </div>
 </div>
 """, unsafe_allow_html=True)
