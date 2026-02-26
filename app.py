@@ -79,7 +79,8 @@ st.markdown("""
     <img src="https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001" style="height: 50px; filter: brightness(0) invert(1);" />
     <div>
         <h1 style="margin: 0; padding: 0; font-size: 32px; line-height: 1.1; color: #FFFFFF;">Drip Mailer</h1>
-        <p style="margin: 0; padding: 0; color: #00A859; font-weight: 600; font-size: 15px;">By Trucking BU - A Sales Toolkit Extension</p>
+        <p style="margin: 0; padding: 0; color: #CCE314; font-weight: 600; font-size: 15px;">By Trucking BU</p>
+        <p style="margin: 0; padding: 0; color: #00A859; font-weight: 600; font-size: 15px;">A Sales Toolkit Extension</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
