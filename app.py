@@ -9,7 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import make_msgid
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="Drip Mailer", page_icon="📧🖋️", layout="wide")
+st.set_page_config(page_title="Drip Mailer", page_icon="🖋️", layout="wide")
 
 # --- CUSTOM CSS (Dark Theme + B2CC40 Green) ---
 st.markdown("""
