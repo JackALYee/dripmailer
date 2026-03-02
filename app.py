@@ -183,7 +183,7 @@ sig_data = {
 selected_sig_html = get_signature_html(st.session_state['sig_layout'], sig_data)
 
 # --- TAB SETUP ---
-tab0, tab1, tab2, tab3 = st.tabs(["0. Setup", "1. Compose", "2. Signatures", "3. Data & Sending"])
+tab0, tab1, tab2, tab3 = st.tabs(["0. Setup", "1. Signatures", "2. Compose", "3. Data & Sending"])
 
 # --- TAB 0: SETUP ---
 with tab0:
@@ -210,7 +210,7 @@ with tab0:
                         # If we reach here, credentials are valid!
                         st.session_state['env_email'] = input_email
                         st.session_state['env_pass'] = input_pass
-                        st.success("Credentials verified and saved to active session! You can now proceed to Compose.")
+                        st.success("Credentials verified and saved to active session! You can now proceed to Signatures.")
                     except smtplib.SMTPAuthenticationError:
                         st.error("Email or passwords incorrect.")
                     except Exception as e:
@@ -222,8 +222,27 @@ with tab0:
             else:
                 st.error("Please provide a valid @streamax.com email and password.")
 
-# --- TAB 1: COMPOSE ---
+# --- TAB 1: SIGNATURES ---
 with tab1:
+    st.markdown("<h2>Email <span class='brand-text'>Signature</span></h2>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.text_input("Full Name", key="sig_name")
+        st.text_input("Job Title", key="sig_title")
+        st.text_input("Company Name", key="sig_company")
+        st.text_input("Phone", key="sig_phone")
+        st.text_input("Website", key="sig_website")
+        st.text_input("Avatar URL", key="sig_avatar")
+        st.text_input("Logo URL", key="sig_logo")
+        st.caption(f"Email: {st.session_state['env_email'] or 'Will use Setup Email'}")
+
+    with col2:
+        st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"], key="sig_layout")
+        st.markdown("<div style='background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; color: black; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
+
+# --- TAB 2: COMPOSE ---
+with tab2:
     st.markdown("<h2>Compose <span class='brand-text'>Email</span></h2>", unsafe_allow_html=True)
     
     with st.popover("💡 Where do these variables come from?"):
@@ -263,25 +282,6 @@ with tab1:
             '</div></div>'
         )
         st.markdown(preview_html, unsafe_allow_html=True)
-
-# --- TAB 2: SIGNATURES ---
-with tab2:
-    st.markdown("<h2>Email <span class='brand-text'>Signature</span></h2>", unsafe_allow_html=True)
-    
-    col1, col2 = st.columns([1, 2])
-    with col1:
-        st.text_input("Full Name", key="sig_name")
-        st.text_input("Job Title", key="sig_title")
-        st.text_input("Company Name", key="sig_company")
-        st.text_input("Phone", key="sig_phone")
-        st.text_input("Website", key="sig_website")
-        st.text_input("Avatar URL", key="sig_avatar")
-        st.text_input("Logo URL", key="sig_logo")
-        st.caption(f"Email: {st.session_state['env_email'] or 'Will use Setup Email'}")
-
-    with col2:
-        st.radio("Select Layout", ["Minimalist Professional", "Creative with Avatar", "Corporate with Logo"], key="sig_layout")
-        st.markdown("<div style='background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; color: black; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>" + selected_sig_html + "</div>", unsafe_allow_html=True)
 
 # --- TAB 3: DATA & SENDING ---
 with tab3:
