@@ -559,6 +559,17 @@ with tab3:
 # --- TAB 4: QUEUE MANAGER ---
 with tab4:
     st.markdown("<h2>Queue <span class='brand-text'>Manager</span></h2>", unsafe_allow_html=True)
+    
+    with st.popover("❓ How does the Queue Manager work?"):
+        st.markdown("""
+        **The Queue Manager acts as your manual dispatch center for scheduled follow-ups.**
+        
+        * **Local Storage:** When you launch a campaign, follow-up emails are saved locally in a database (`campaigns.db`) instead of being sent immediately.
+        * **Randomized Times:** Each follow-up is assigned a natural-looking dispatch time between **9:00 AM and 5:00 PM** on the scheduled `T+X` day.
+        * **Pending vs. Due:** The table below shows all emails waiting in the queue. The **Ready to Send Right Now** metric counts only the emails whose scheduled time has *already passed*.
+        * **Dispatch:** Click the **"Process Due Emails Now"** button to physically send the due emails. It logs into the Streamax server, dispatches them, and marks them as completed.
+        """)
+        
     st.write("View all scheduled follow-up emails and manually process ones that have reached their target send time.")
     
     # Connect to DB and fetch
