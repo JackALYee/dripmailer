@@ -233,7 +233,7 @@ sig_data = {
 selected_sig_html = get_signature_html(st.session_state['sig_layout'], sig_data)
 
 # --- TABS ---
-tab0, tab1, tab2, tab3 = st.tabs(["0. Setup", "1. Signatures", "2. Compose", "3. Data & Sending"])
+tab0, tab1, tab2, tab3, tab4 = st.tabs(["0. Setup", "1. Signatures", "2. Compose", "3. Data & Sending", "4. Queue Manager"])
 
 # --- TAB 0: SETUP ---
 with tab0:
@@ -555,3 +555,115 @@ with tab3:
                     )
         except Exception as e:
             st.error(f"Error reading CSV: {str(e)}")
+
+# --- TAB 4: QUEUE MANAGER ---
+with tab4:
+    st.markdown("<h2>Queue <span class='brand-text'>Manager</span></h2>", unsafe_allow_html=True)
+    st.write("View all scheduled follow-up emails and manually process ones that have reached their target send time.")
+    
+    # Connect to DB and fetch
+    conn = sqlite3.connect('campaigns.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    
+    # 1. Show all pending
+    c.execute("SELECT id, target_email, subject, send_at FROM scheduled_emails WHERE status = 'pending' ORDER BY send_at ASC")
+    pending_emails = c.fetchall()
+    
+    current_time_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # 2. Show only DUE pending
+    c.execute("SELECT * FROM scheduled_emails WHERE status = 'pending' AND send_at <= ?", (current_time_str,))
+    due_emails = c.fetchall()
+    
+    col_q1, col_q2 = st.columns(2)
+    with col_q1:
+        st.metric("Total Scheduled (Pending)", len(pending_emails))
+    with col_q2:
+        st.metric("Ready to Send Right Now", len(due_emails), delta_color="off")
+        
+    st.markdown("### Scheduled Queue")
+    if pending_emails:
+        df_pending = pd.DataFrame([{
+            "ID": r['id'], 
+            "Target Email": r['target_email'], 
+            "Subject": r['subject'], 
+            "Scheduled For": r['send_at']
+        } for r in pending_emails])
+        st.dataframe(df_pending, use_container_width=True, hide_index=True)
+    else:
+        st.info("No emails are currently waiting in the queue.")
+        
+    st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin-bottom: 25px;'><br>", unsafe_allow_html=True)
+    
+    st.markdown("### Execute Due Emails")
+    st.write("Clicking this button will dispatch any emails in the queue whose `Scheduled For` time has already passed.")
+    
+    if st.button("🚀 Process Due Emails Now", type="primary", disabled=len(due_emails) == 0):
+        
+        q_progress = st.progress(0)
+        q_log_container = st.empty()
+        q_logs = []
+        
+        # Group by sender account to minimize logins
+        accounts_dict = {}
+        for row in due_emails:
+            email_key = row['sender_email']
+            if email_key not in accounts_dict:
+                accounts_dict[email_key] = {
+                    'password': row['sender_password'],
+                    'emails': []
+                }
+            accounts_dict[email_key]['emails'].append(row)
+            
+        total_due = len(due_emails)
+        processed_count = 0
+        
+        for sender_email, account_data in accounts_dict.items():
+            q_logs.append(f"[{time.strftime('%X')}] 🔐 Authenticating for account {sender_email}...")
+            q_log_container.code('\n'.join(q_logs[-15:]), language='text')
+            
+            try:
+                context = ssl.create_default_context()
+                server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=30, context=context)
+                server.login(sender_email, account_data['password'])
+                
+                for row in account_data['emails']:
+                    email_id = row['id']
+                    target = row['target_email']
+                    q_logs.append(f"[{time.strftime('%X')}] 📤 Sending ID {email_id} to {target}...")
+                    q_log_container.code('\n'.join(q_logs[-15:]), language='text')
+                    
+                    try:
+                        msg = MIMEMultipart("alternative")
+                        msg["From"] = f"{row['sender_name']} <{row['sender_email']}>"
+                        msg["To"] = target
+                        msg["Subject"] = row['subject']
+                        msg["Message-ID"] = make_msgid(domain=row['sender_email'].split("@")[-1])
+                        msg.attach(MIMEText(row['html_body'], "html", "utf-8"))
+                        
+                        server.send_message(msg)
+                        
+                        # Mark sent
+                        c.execute("UPDATE scheduled_emails SET status = 'sent' WHERE id = ?", (email_id,))
+                        q_logs.append(f"   ✅ Success!")
+                    except Exception as e:
+                        q_logs.append(f"   ❌ Failed: {str(e)}")
+                        c.execute("UPDATE scheduled_emails SET status = 'failed' WHERE id = ?", (email_id,))
+                        
+                    conn.commit()
+                    processed_count += 1
+                    q_progress.progress(processed_count / total_due)
+                    q_log_container.code('\n'.join(q_logs[-15:]), language='text')
+                    time.sleep(0.5)
+                    
+                server.quit()
+            except Exception as e:
+                q_logs.append(f"[{time.strftime('%X')}] ❌ Critical Auth Error for {sender_email}: {str(e)}")
+                q_log_container.code('\n'.join(q_logs[-15:]), language='text')
+                
+        st.success("Queue processing complete!")
+        time.sleep(2)
+        st.rerun() # Refresh the UI to update the tables
+
+    conn.close()
