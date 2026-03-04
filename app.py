@@ -4,9 +4,39 @@ import smtplib
 import ssl
 import time
 import re
+import csv
+import io
+import base64
+import sqlite3
+import random
+import datetime
+import streamlit.components.v1 as components
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.utils import make_msgid
+
+# --- DATABASE INIT ---
+def init_db():
+    conn = sqlite3.connect('campaigns.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS scheduled_emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            target_email TEXT,
+            sender_name TEXT,
+            sender_email TEXT,
+            sender_password TEXT,
+            subject TEXT,
+            html_body TEXT,
+            send_at DATETIME,
+            status TEXT DEFAULT 'pending',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Drip Mailer", page_icon="📧", layout="wide")
@@ -26,7 +56,7 @@ st.markdown("""
     /* Buttons */
     .stButton>button, .stButton>button p, .stButton>button span, .stButton>button div {
         background-color: #B2CC40 !important;
-        color: #050810 !important; /* Force dark text for readability on bright green */
+        color: #050810 !important; 
         font-weight: 600 !important;
         border: none;
         border-radius: 6px;
@@ -60,7 +90,7 @@ st.markdown("""
     /* Hide default header */
     header { visibility: hidden; }
     
-    /* Tab Styling Override for Dark Theme */
+    /* Tab Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 24px;
     }
@@ -96,9 +126,21 @@ if 'sig_title' not in st.session_state: st.session_state['sig_title'] = "Sales D
 if 'sig_company' not in st.session_state: st.session_state['sig_company'] = "Streamax Technology"
 if 'sig_phone' not in st.session_state: st.session_state['sig_phone'] = "(555) 123-4567"
 if 'sig_website' not in st.session_state: st.session_state['sig_website'] = "https://www.streamax.com"
-if 'sig_avatar' not in st.session_state: st.session_state['sig_avatar'] = "https://images.unsplash.com/photo-1531831108325-7fe9616bc780?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000"
+if 'sig_avatar' not in st.session_state: st.session_state['sig_avatar'] = "https://images.unsplash.com/photo-1531831108325-7fe9616bc780?auto=format&fit=crop&fm=jpg&q=60&w=300"
 if 'sig_logo' not in st.session_state: st.session_state['sig_logo'] = "https://mail.streamax.com/coremail/s?func=lp:getImg&org_id=&img_id=logo_001"
 if 'sig_layout' not in st.session_state: st.session_state['sig_layout'] = "Creative with Avatar"
+if 'latest_log_csv' not in st.session_state: st.session_state['latest_log_csv'] = ""
+
+# Follow-up Templates State
+for i in range(5):
+    if f't_name_{i}' not in st.session_state: st.session_state[f't_name_{i}'] = f"Template {i+1}"
+    if f't_subj_{i}' not in st.session_state: st.session_state[f't_subj_{i}'] = f"Checking in - {i+1}"
+    if f't_body_{i}' not in st.session_state: st.session_state[f't_body_{i}'] = "Hi {first_name},\n\nJust wanted to float this to the top of your inbox.\n\nBest,"
+
+# Campaign Sequence State
+for i in range(5):
+    if f'seq_en_{i}' not in st.session_state: st.session_state[f'seq_en_{i}'] = False
+    if f'seq_delay_{i}' not in st.session_state: st.session_state[f'seq_delay_{i}'] = (i + 1) * 4
 
 # --- DEFAULTS & TEMPLATES ---
 DEFAULT_BODY = """Hi {first_name},
@@ -111,7 +153,6 @@ Would you be open to a brief 10-minute chat next week?
 
 Best regards,"""
 
-# Tightly packed HTML to prevent Streamlit from rendering them as Markdown code blocks
 DISCLAIMER_HTML = (
     '<div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-family: Arial, sans-serif; font-size: 10px; color: #64748b; line-height: 1.4; text-align: justify;">'
     '<strong>Email Disclaimer:</strong> This e-mail is intended only for the person or entity to which it is addressed and may contain confidential and/or privileged material. Any review, retransmission, dissemination or other use of, or taking of any action in reliance upon, the information in this e-mail by persons or entities other than the intended recipient is prohibited and may be unlawful. If you received this e-mail in error, please contact the sender and delete it from any computer.'
@@ -169,6 +210,15 @@ def create_message(subject, html_body, to_addr, from_name, from_email):
     msg.attach(MIMEText(html_body, "html", "utf-8"))
     return msg
 
+def get_random_business_time(days_ahead):
+    """Calculates future date with a random time between 9 AM and 4:59 PM"""
+    target_date = datetime.datetime.now() + datetime.timedelta(days=days_ahead)
+    random_hour = random.randint(9, 16)
+    random_minute = random.randint(0, 59)
+    random_second = random.randint(0, 59)
+    target_time = target_date.replace(hour=random_hour, minute=random_minute, second=random_second, microsecond=0)
+    return target_time.strftime('%Y-%m-%d %H:%M:%S')
+
 # Generate current signature html to share across tabs
 sig_data = {
     "name": st.session_state['sig_name'],
@@ -182,7 +232,7 @@ sig_data = {
 }
 selected_sig_html = get_signature_html(st.session_state['sig_layout'], sig_data)
 
-# --- TAB SETUP ---
+# --- TABS ---
 tab0, tab1, tab2, tab3 = st.tabs(["0. Setup", "1. Signatures", "2. Compose", "3. Data & Sending"])
 
 # --- TAB 0: SETUP ---
@@ -201,20 +251,17 @@ with tab0:
             if input_email.endswith("@streamax.com") and input_pass:
                 with st.spinner("Verifying credentials with mail.streamax.com..."):
                     try:
-                        # Test SMTP Connection and Login before saving
                         context = ssl.create_default_context()
                         server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=15, context=context)
                         server.login(input_email, input_pass)
                         server.quit()
                         
-                        # If we reach here, credentials are valid!
                         st.session_state['env_email'] = input_email
                         st.session_state['env_pass'] = input_pass
                         st.success("Credentials verified and saved to active session! You can now proceed to Signatures.")
                     except smtplib.SMTPAuthenticationError:
                         st.error("Email or passwords incorrect.")
                     except Exception as e:
-                        # Broad catch to ensure 535 auth failures are always reported correctly
                         if '535' in str(e) or 'authentication failed' in str(e).lower():
                             st.error("Email or passwords incorrect.")
                         else:
@@ -248,7 +295,7 @@ with tab2:
     with st.popover("💡 Where do these variables come from?"):
         st.markdown("""
         **Variable Reference Guide:**
-        * `{first_name}`, `{last_name}`, `{company}`, `{role}`: These are obtained directly from the **CSV file** you upload in the *Data & Sending* tab. (Any column header in your CSV can automatically be used as a variable!)
+        * `{first_name}`, `{last_name}`, `{company}`, `{role}`: These are obtained directly from the **CSV file** you upload in the *Data & Sending* tab.
         * `{your_name}`: This is obtained dynamically from the **Full Name** input in the *Signatures* tab.
         """)
     
@@ -268,7 +315,6 @@ with tab2:
         rendered_subject = render_template(subject_template, sample_row)
         rendered_body_html = render_template(body_template, sample_row).replace('\n', '<br>')
         
-        # Enhanced fully styled email preview card (White background for realistic preview)
         preview_html = (
             '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">'
             '<div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">'
@@ -282,45 +328,61 @@ with tab2:
             '</div></div>'
         )
         st.markdown(preview_html, unsafe_allow_html=True)
+        
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # --- Advanced Email Templates Component ---
+    with st.expander("⚙️ Advanced: Follow-up Email Templates (Campaign)"):
+        st.write("Create up to 5 additional follow-up templates here. You can schedule these to send automatically in the Data & Sending tab.")
+        
+        template_tabs = st.tabs([st.session_state[f't_name_{i}'] for i in range(5)])
+        
+        for i, t_tab in enumerate(template_tabs):
+            with t_tab:
+                st.text_input("Template Name", key=f't_name_{i}')
+                col_t1, col_t2 = st.columns(2)
+                with col_t1:
+                    st.text_input(f"Subject Line", key=f't_subj_{i}')
+                    st.text_area(f"Email Body", height=250, key=f't_body_{i}')
+                with col_t2:
+                    st.caption("Live HTML Preview (Sample Data)")
+                    rendered_t_subj = render_template(st.session_state[f't_subj_{i}'], sample_row)
+                    rendered_t_body_html = render_template(st.session_state[f't_body_{i}'], sample_row).replace('\n', '<br>')
+                    
+                    t_preview_html = (
+                        '<div style="background-color: #ffffff; color: #1e293b; padding: 24px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: Arial, sans-serif; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">'
+                        '<div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px;">'
+                        '<span style="color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Subject:</span>'
+                        f'<span style="color: #0f172a; font-size: 15px; font-weight: bold; margin-left: 8px;">{rendered_t_subj}</span>'
+                        '</div>'
+                        '<div style="font-size: 14px; line-height: 1.6; color: #334155;">'
+                        f'{rendered_t_body_html}'
+                        '<br><br>'
+                        f'{selected_sig_html}'
+                        '</div></div>'
+                    )
+                    st.markdown(t_preview_html, unsafe_allow_html=True)
 
 # --- TAB 3: DATA & SENDING ---
 with tab3:
     st.markdown("<h2>Data & <span class='brand-text'>Sending</span></h2>", unsafe_allow_html=True)
     
-    # --- Moved Lead List Template Download Section ---
     st.markdown("<h3>📝 Lead List <span class='brand-text'>Template</span></h3>", unsafe_allow_html=True)
     st.write("Ensure your contacts are formatted correctly before uploading below. Here is the required column structure:")
     
-    # Display the table structure
-    template_df = pd.DataFrame([{
-        "Email": "example@streamax.com",
-        "First_Name": "John",
-        "Last_Name": "Doe",
-        "Company": "Streamax",
-        "Role": "Sales Manager"
-    }])
+    template_df = pd.DataFrame([{"Email": "example@streamax.com", "First_Name": "John", "Last_Name": "Doe", "Company": "Streamax", "Role": "Sales Manager"}])
     st.dataframe(template_df, hide_index=True, use_container_width=True)
     
-    st.write("Click below to download the standard CSV template.")
-    
     CSV_TEMPLATE = "Email,First_Name,Last_Name,Company,Role\nexample@streamax.com,John,Doe,Streamax,Sales Manager\n"
-    
-    st.download_button(
-        label="Download leadList.csv",
-        data=CSV_TEMPLATE,
-        file_name="leadList.csv",
-        mime="text/csv",
-    )
+    st.download_button("Download leadList.csv", data=CSV_TEMPLATE, file_name="leadList.csv", mime="text/csv")
     
     st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin-bottom: 25px;'><br>", unsafe_allow_html=True)
-    # ------------------------------------------------
     
     uploaded_file = st.file_uploader("Upload leadList.csv", type=['csv'])
     
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file)
-            # Standardize columns for mapping
             df.columns = [str(c).lower().strip() for c in df.columns]
             required = ['first_name', 'last_name', 'email', 'role', 'company']
             missing = [r for r in required if r not in df.columns]
@@ -329,7 +391,26 @@ with tab3:
                 st.error(f"Missing required columns: {', '.join(missing)}")
             else:
                 st.dataframe(df.head(10), use_container_width=True)
+                st.markdown("<br>", unsafe_allow_html=True)
                 
+                # --- Advanced Campaign Settings ---
+                with st.expander("⚙️ Advanced: Email Campaign Cycle"):
+                    st.write("Set up your automated follow-up sequence. Emails will be scheduled at a random time between **9:00 AM and 5:00 PM** on the target date.")
+                    
+                    tmpl_options = [st.session_state[f't_name_{j}'] for j in range(5)]
+                    
+                    for i in range(5):
+                        col_s1, col_s2, col_s3 = st.columns([1, 2, 3])
+                        with col_s1:
+                            st.checkbox(f"Follow-up {i+1}", key=f"seq_en_{i}")
+                        with col_s2:
+                            st.number_input("Days after T+0", min_value=1, key=f"seq_delay_{i}", disabled=not st.session_state[f"seq_en_{i}"])
+                        with col_s3:
+                            st.selectbox("Select Template", options=tmpl_options, key=f"seq_tmpl_{i}", disabled=not st.session_state[f"seq_en_{i}"])
+                            
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # --- Execution ---
                 if st.button("INITIATE BATCH SEND", type="primary"):
                     if not st.session_state['env_email'] or not st.session_state['env_pass']:
                         st.error("Missing Credentials! Please go back to Tab 0 (Setup) and enter your Streamax login.")
@@ -338,51 +419,139 @@ with tab3:
                         log_container = st.empty()
                         logs = []
                         
+                        # --- Prepare CSV Logging ---
+                        log_output = io.StringIO()
+                        csv_writer = csv.writer(log_output)
+                        
+                        csv_writer.writerow(["--- CAMPAIGN CONFIGURATION ---"])
+                        csv_writer.writerow(["Type", "Template Name", "Subject", "Body/Details"])
+                        csv_writer.writerow(["Main Email", "Original", subject_template, body_template])
+                        
+                        for j in range(5):
+                            if st.session_state[f"seq_en_{j}"]:
+                                delay = st.session_state[f"seq_delay_{j}"]
+                                tmpl_name = st.session_state[f"seq_tmpl_{j}"]
+                                t_subj, t_bod = "", ""
+                                for k in range(5):
+                                    if st.session_state[f't_name_{k}'] == tmpl_name:
+                                        t_subj = st.session_state[f't_subj_{k}']
+                                        t_bod = st.session_state[f't_body_{k}']
+                                        break
+                                csv_writer.writerow(["Follow-up", tmpl_name, t_subj, f"T+{delay} Days | Body: {t_bod}"])
+                        
+                        csv_writer.writerow([])
+                        csv_writer.writerow(["--- EXECUTION LOG ---"])
+                        csv_writer.writerow(["Timestamp", "First Name", "Last Name", "Email Address", "Action", "Details"])
+                        
                         try:
-                            # SMTP Connection
                             context = ssl.create_default_context()
                             server = smtplib.SMTP_SSL("mail.streamax.com", 465, timeout=30, context=context)
                             server.login(st.session_state['env_email'], st.session_state['env_pass'])
                             
+                            # Open local DB connection for queueing
+                            conn = sqlite3.connect('campaigns.db')
+                            c = conn.cursor()
+                            
                             total = len(df)
                             for index, row in df.iterrows():
-                                # Convert row to dictionary and inject dynamic variables
                                 row_dict = row.to_dict()
                                 row_dict["your_name"] = st.session_state['sig_name']
                                 
                                 target_email = row_dict.get('email')
+                                first_name = row_dict.get('first_name', '')
+                                last_name = row_dict.get('last_name', '')
+                                
                                 if pd.isna(target_email):
                                     continue
+                                    
+                                current_timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
                                 
-                                # Render Email
                                 rendered_subj = render_template(subject_template, row_dict)
                                 rendered_body = render_template(body_template, row_dict)
                                 html_content = rendered_body.replace('\n', '<br>') + f"<br><br>{selected_sig_html}"
                                 
                                 msg = create_message(rendered_subj, html_content, target_email, st.session_state['sig_name'], st.session_state['env_email'])
                                 
-                                # Send
                                 try:
                                     server.send_message(msg)
                                     logs.append(f"✅ [{time.strftime('%X')}] Sent successfully to {target_email}")
+                                    csv_writer.writerow([current_timestamp, first_name, last_name, target_email, "Sent Main Email", "Success"])
+                                    
+                                    # Schedule Follow-ups
+                                    for j in range(5):
+                                        if st.session_state[f"seq_en_{j}"]:
+                                            delay = st.session_state[f"seq_delay_{j}"]
+                                            tmpl_name = st.session_state[f"seq_tmpl_{j}"]
+                                            
+                                            # Grab specific template
+                                            t_subj, t_bod = "", ""
+                                            for k in range(5):
+                                                if st.session_state[f't_name_{k}'] == tmpl_name:
+                                                    t_subj = render_template(st.session_state[f't_subj_{k}'], row_dict)
+                                                    t_bod = render_template(st.session_state[f't_body_{k}'], row_dict)
+                                                    break
+                                            
+                                            f_html_content = t_bod.replace('\n', '<br>') + f"<br><br>{selected_sig_html}"
+                                            send_at_time = get_random_business_time(delay)
+                                            
+                                            # Write to database securely
+                                            c.execute('''
+                                                INSERT INTO scheduled_emails 
+                                                (target_email, sender_name, sender_email, sender_password, subject, html_body, send_at)
+                                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            ''', (target_email, st.session_state['sig_name'], st.session_state['env_email'], st.session_state['env_pass'], t_subj, f_html_content, send_at_time))
+                                            
+                                            logs.append(f"⏳ [{time.strftime('%X')}] Queued '{tmpl_name}' for {target_email} at {send_at_time}")
+                                            csv_writer.writerow([current_timestamp, first_name, last_name, target_email, "Scheduled Follow-up", f"{tmpl_name} at {send_at_time}"])
+                                            
                                 except Exception as e:
                                     logs.append(f"❌ [{time.strftime('%X')}] Failed to send to {target_email}: {str(e)}")
+                                    csv_writer.writerow([current_timestamp, first_name, last_name, target_email, "Sent Main Email", f"Failed: {str(e)}"])
                                 
-                                # Update UI
+                                conn.commit()
                                 progress_bar.progress((index + 1) / total)
-                                log_container.code('\n'.join(logs[-10:]), language='text')
+                                log_container.code('\n'.join(logs[-15:]), language='text')
                                 time.sleep(0.5)
                                 
+                            conn.close()
                             server.quit()
-                            st.success("Batch Processing Complete!")
+                            st.success("Batch Processing Complete! Your log should begin downloading automatically.")
+                            
+                            # Finalize CSV
+                            final_csv_data = log_output.getvalue()
+                            st.session_state['latest_log_csv'] = final_csv_data
+                            
+                            b64 = base64.b64encode(final_csv_data.encode()).decode()
+                            timestamp_file = time.strftime('%Y%m%d_%H%M%S')
+                            
+                            components.html(
+                                f"""
+                                <script>
+                                    var a = document.createElement('a');
+                                    a.href = 'data:text/csv;base64,{b64}';
+                                    a.download = 'campaign_log_{timestamp_file}.csv';
+                                    a.click();
+                                </script>
+                                """,
+                                height=0
+                            )
                             
                         except smtplib.SMTPAuthenticationError:
                             st.error("Email or passwords incorrect. Please return to the Setup tab to re-authenticate.")
                         except Exception as e:
-                            # Broad catch to ensure 535 auth failures are always reported correctly
                             if '535' in str(e) or 'authentication failed' in str(e).lower():
                                 st.error("Email or passwords incorrect. Please return to the Setup tab to re-authenticate.")
                             else:
                                 st.error(f"SMTP Connection Error: {str(e)}")
+                
+                # --- Persistent Manual Download Button ---
+                if st.session_state.get('latest_log_csv'):
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.download_button(
+                        label="📥 Download Latest Execution Log (CSV)",
+                        data=st.session_state['latest_log_csv'],
+                        file_name=f"campaign_log_manual.csv",
+                        mime="text/csv",
+                    )
         except Exception as e:
             st.error(f"Error reading CSV: {str(e)}")
